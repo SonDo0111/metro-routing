@@ -12,7 +12,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Gắn thêm thư mục để tự động chạy SQL script khi khởi tạo lần đầu
-      - ./pipeline/01_raw_gtfs_init.sql:/docker-entrypoint-initdb.d/01_raw_gtfs_init.sql
+
       - ./data:/container_data
       - ./engine/include/generated:/generated
     healthcheck:

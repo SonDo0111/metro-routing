@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: gtfs-db
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin_password}
+      POSTGRES_DB: ${DB_NAME:-gtfs_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Gắn thêm thư mục để tự động chạy SQL script khi khởi tạo lần đầu
+      - ./pipeline/01_raw_gtfs_init.sql:/docker-entrypoint-initdb.d/01_raw_gtfs_init.sql
+      - ./data:/container_data
+      - ./engine/include/generated:/generated
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d lab_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

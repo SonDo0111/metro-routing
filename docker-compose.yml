@@ -12,11 +12,10 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Gắn thêm thư mục để tự động chạy SQL script khi khởi tạo lần đầu
-
       - ./data:/container_data
       - ./engine/include/generated:/generated
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d lab_db"]
+      test: [ "CMD-SHELL", "pg_isready -U admin -d gtfs-db" ]
       interval: 10s
       timeout: 5s
       retries: 5

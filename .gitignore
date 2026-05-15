@@ -2,7 +2,6 @@
 data/
 build/
 engine/include/generated/
-.vscode/
 web/public/
 *.log
 

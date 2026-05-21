@@ -70,7 +70,7 @@ SELECT FORMAT(
 
 namespace GTFSData {
 	
-	constexpr std::size_t NUM_NODES {%s}
+	constexpr std::size_t NUM_NODES {%s};
  
     struct Node {
         std::string_view stop_id;
@@ -81,7 +81,7 @@ namespace GTFSData {
     };
 
     // 1. Lookup thông tin trạm
-    constexpr std::array<Node, NUM_NODE> nodes = {{
+    constexpr std::array<Node, NUM_NODES> nodes = {{
 %s
     }};
 

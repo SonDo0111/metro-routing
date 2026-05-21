@@ -28,7 +28,7 @@ select
 	n1.node_id as source_node,
 	n2.node_id as target_node,
 	-- Calculate the median (50th percentile) travel time to ignore outliers
-	PERCENTILE_CONT(0.5) within group (order by travel_time_seconds) as travel_time_seconds
+	round(PERCENTILE_CONT(0.5) within group (order by travel_time_seconds)) as travel_time_seconds
 from
 	metro.TravelRawEdges
 join metro.nodes n1 on
@@ -85,7 +85,7 @@ create view metro.TransferEdges as(
 select
 	n1.node_id as source_node,
 	n2.node_id as target_node,
-	t.min_transfer_time + hw.expected_wait_seconds as transfer_time
+	round(t.min_transfer_time + hw.expected_wait_seconds)::int as transfer_time
 from
 	raw_gtfs.transfers t
 join metro.nodes n1 on

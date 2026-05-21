@@ -67,8 +67,7 @@ create materialized view metro.NodeHeadways as (
 -- Calculate Expected Wait Time (Median Headway / 2)
 	select
 		n.node_id,
-		(PERCENTILE_CONT(0.5) within group (
-		order by headway)) / 2 as expected_wait_seconds
+		(PERCENTILE_CONT(0.5) within group (order by headway)) / 2 as expected_wait_seconds
 	from
 		HeadwaySeconds hs
 	join metro.nodes n on
@@ -111,6 +110,52 @@ union all
 		*
 	from
 		metro.TravelEdges t) 
+);
+
+
+
+WITH EdgeCounts AS (
+    -- Step 1: Count edges per node, ensuring EVERY node exists (0 to N-1)
+    SELECT 
+        n.node_id,
+        COUNT(e.target_node) AS edge_count
+    FROM metro.nodes n
+    LEFT JOIN metro.edges e ON n.node_id = e.source_node
+    GROUP BY n.node_id
+),
+RunningTotals AS (
+    -- Step 2: Calculate the cumulative sum
+    SELECT 
+        FORMAT('        %s', SUM(edge_count) OVER (ORDER BY node_id)) AS cpp_line
+    FROM EdgeCounts
+)
+-- Step 3: Ghép toàn bộ thành 1 file C++ hoàn chỉnh
+SELECT FORMAT(
+'#pragma once
+#include <array>
+#include <cstddef> // For std::size_t
+#include "node.hpp"
+
+namespace GTFSData {
+
+	constexpr std::size_t NUM_EDGES {%s};
+
+    // CSR Node Offsets Array (Size: NUM_NODES + 1)
+    constexpr std::array<std::size_t, NUM_NODES + 1> node_offset = {
+        0,
+%s
+    };
+
+	
+
+	constexpr std::array<std::size_t, NUM_EDGES> targets{%s};
+	constexpr std::array<std::size_t, NUM_EDGES> weights{%s};
+
+}', 
+    (SELECT COUNT(*) FROM metro.edges),           -- NUM_EDGES
+    (SELECT STRING_AGG(cpp_line, ',' || CHR(10)) FROM RunningTotals), -- Mảng node_offset
+    (select STRING_AGG(target_node::text, ', ' order by source_node) from metro.edges),
+    (select STRING_AGG(transfer_time::text, ', ' order by source_node) from metro.edges)
 );
 
 

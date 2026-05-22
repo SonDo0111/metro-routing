@@ -23,20 +23,13 @@ struct QueueElement
     }
 };
 
-std::vector<GTFSData::node_t> reconstruct_path(const std::vector<GTFSData::node_t> &p, GTFSData::node_t goal_node)
+struct PathResult
 {
-    std::vector<GTFSData::node_t> path;
-    GTFSData::node_t current{goal_node};
-    while (current != std::numeric_limits<GTFSData::node_t>::max())
-    {
-        path.push_back(current);
-        current = p[current];
-    }
-    std::reverse(path.begin(), path.end());
-    return path;
-}
+    GTFSData::weight_t total_time;
+    std::vector<GTFSData::node_t> path_nodes;
+};
 
-GTFSData::weight_t dijkstra(const GTFSData::graph_t &graph, std::size_t start_node, std::size_t goal_node)
+PathResult dijkstra(const GTFSData::graph_t &graph, std::size_t start_node, std::size_t goal_node)
 {
     // Vector to keep track information about the state
     std::vector<GTFSData::weight_t> d(graph.num_nodes, INF);
@@ -57,7 +50,17 @@ GTFSData::weight_t dijkstra(const GTFSData::graph_t &graph, std::size_t start_no
         // Early exit
         if (current.nodeID == goal_node)
         {
-            return d[goal_node];
+            std::vector<GTFSData::node_t> path{};
+            GTFSData::node_t curr{goal_node};
+
+            while (curr != -1)
+            {
+                path.push_back(curr);
+                curr = p[curr];
+            }
+
+            std::reverse(path.begin(), path.end());
+            return {d[goal_node], path};
         }
 
         // Stale data check because using lazy dijkstra
@@ -86,16 +89,16 @@ GTFSData::weight_t dijkstra(const GTFSData::graph_t &graph, std::size_t start_no
         }
     }
 
-    return INF;
+    return {INF, {}};
 }
 
-void print_path(const std::vector<GTFSData::node_t> &path)
+void print_path(const PathResult &path)
 {
     std::cout << "Path: ";
-    for (std::size_t i = 0; i < path.size(); ++i)
+    for (std::size_t i = 0; i < path.path_nodes.size(); ++i)
     {
-        std::cout << path[i];
-        if (i < path.size() - 1)
+        std::cout << path.path_nodes[i];
+        if (i < path.path_nodes.size() - 1)
             std::cout << " -> ";
     }
     std::cout << "\nDistance: " << "time" << std::endl;

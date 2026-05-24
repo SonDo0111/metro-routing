@@ -7,10 +7,11 @@
 #include <cstddef>
 #include <utility>
 #include <algorithm>
+#include <chrono>
 #include "../include/graph.hpp"
 #include "../include/pathfinding.hpp"
 
-int node_expanded{0};
+
 
 std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
 {
@@ -52,7 +53,6 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
     {
         QueueElement current = pq.top();
         pq.pop();
-        ++node_expanded;
 
         // Early exit
         if (current.nodeID == goal_node)
@@ -147,9 +147,26 @@ void print_itinerary(const PathResult &result)
     std::cout << "🏁 ARRIVED AT DESTINATION\n";
 }
 
-int main()
-{
-    PathResult test{dijkstra(GTFSData::graph, 0, 90)};
-    print_itinerary(test);
-    std::cout << node_expanded;
+
+int main() {
+    GTFSData::node_t start = 0; // Barbara
+    GTFSData::node_t goal = 90;  // Malesherbes
+    GTFSData::weight_t penalty = 300;
+
+    // --- Start the Clock ---
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    // Run the algorithm
+    PathResult result = dijkstra(GTFSData::graph, start, goal, penalty);
+
+    // --- Stop the Clock ---
+    auto end_time = std::chrono::high_resolution_clock::now();
+
+    // Calculate duration in microseconds
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+
+    std::cout << "Algorithm finished in: " << duration << " microseconds.\n";
+    
+    // print_itinerary(result); // Don't include printing in the benchmark!
+    return 0;
 }

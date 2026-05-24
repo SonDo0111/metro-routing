@@ -16,7 +16,7 @@
                 "-pedantic-errors",
                 "-Werror",
                 "-march=native",
-                "-O0",
+                "-O3",
                 "${file}",
                 "-o",
                 "${workspaceFolder}/build/${fileBasenameNoExtension}"

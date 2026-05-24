@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Extracting Metro Graph from PostgreSQL..."
 
-# Define your docker and DB variables
+# Define docker and DB variables
 CONTAINER_NAME="gtfs-db"
 DB_USER="admin"
 DB_NAME="gtfs-db"

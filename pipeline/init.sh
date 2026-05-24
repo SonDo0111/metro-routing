@@ -28,10 +28,8 @@ print_info() { echo -e "${YELLOW}[INFO]${NC} $1"; }
 print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 
 # --- SQL EXECUTION WRAPPER ---
-# This function DRYs up your code (Don't Repeat Yourself)
 run_sql() {
     local file=$1
-    # Note: I changed -e to -a. '-a' echoes the SQL comments too, which makes reading the logs much easier!
     (echo '\timing on'; cat "$file") | docker exec -i "$CONTAINER_NAME" psql -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 -a -P pager=off -P border=2 -P linestyle=unicode
 }
 

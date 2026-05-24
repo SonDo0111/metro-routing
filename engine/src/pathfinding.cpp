@@ -9,6 +9,9 @@
 #include <algorithm>
 #include "../include/graph.hpp"
 #include "../include/pathfinding.hpp"
+#include "../include/helper.hpp"
+
+int node_expanded{0};
 
 std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
 {
@@ -31,7 +34,7 @@ std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
 
 PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
                     GTFSData::node_t goal_node,
-                   GTFSData::weight_t transfer_penalty)
+                    GTFSData::weight_t transfer_penalty)
 {
     // Vector to keep track information about the state
     // This tell us about how many seconds we need to travel to the node
@@ -44,12 +47,13 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
 
     // Init
     time_taken_to[start_node] = 0;
-    pq.push({0, start_node});
+    pq.push({0, 0, start_node});
 
     while (!pq.empty())
     {
         QueueElement current = pq.top();
         pq.pop();
+        node_expanded++;
 
         // Early exit
         if (current.nodeID == goal_node)
@@ -96,8 +100,9 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
                 time_taken_to[neighbor] = new_time_taken;
                 p[neighbor] = current.nodeID;
 
+                GTFSData::weight_t heuristic{static_cast<GTFSData::weight_t>(heuristic_time(neighbor, goal_node))};
                 // Push to the queue if found a strictly better path
-                pq.push({new_time_taken, neighbor});
+                pq.push({new_time_taken + heuristic, new_time_taken, neighbor});
             }
         }
     }
@@ -146,6 +151,7 @@ void print_itinerary(const PathResult &result)
 
 int main()
 {
-    PathResult test{dijkstra(GTFSData::graph, 0, 90)};
-    print_itinerary(test);
+    PathResult path1{dijkstra(GTFSData::graph, 0, 90)};
+    print_itinerary(path1);
+    std::cout << node_expanded;
 }

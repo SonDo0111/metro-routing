@@ -19,12 +19,13 @@ constexpr GTFSData::weight_t INF = std::numeric_limits<GTFSData::weight_t>::max(
 
 struct QueueElement
 {
+    GTFSData::weight_t estimated_time_taken;
     GTFSData::weight_t time_taken;
     GTFSData::node_t nodeID;
 
     bool operator>(const QueueElement &other) const
     {
-        return this->time_taken > other.time_taken;
+        return this->estimated_time_taken > other.estimated_time_taken;
     }
 };
 

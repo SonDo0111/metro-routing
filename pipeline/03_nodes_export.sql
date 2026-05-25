@@ -40,7 +40,7 @@ select
 	n.stop_id,
 	n.stop_lat,
 	n.stop_lon,
-	n.parent_staion,
+	n.parent_station,
 	r.route_long_name,
 	n.direction_id
 from

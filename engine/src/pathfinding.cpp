@@ -32,8 +32,8 @@ std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
 }
 
 PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
-                    GTFSData::node_t goal_node,
-                    GTFSData::weight_t transfer_penalty)
+                  GTFSData::node_t goal_node,
+                  GTFSData::weight_t transfer_penalty)
 {
     // Vector to keep track information about the state
     // This tell us about how many seconds we need to travel to the node
@@ -68,11 +68,11 @@ PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
             }
 
             std::reverse(path.begin(), path.end());
-
+            // Note: The return is true time estimated in second but not the cost used in pq
             return {time_taken_to[goal_node] - transfer_count(path) * transfer_penalty, path};
         }
 
-        // Stale data check because using lazy dijkstra
+            // Stale data check because using lazy dijkstra
         if (current.time_taken > time_taken_to[current.nodeID])
         {
             continue;
@@ -108,64 +108,65 @@ PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
     return {INF, {}};
 }
 
-void print_itinerary(const PathResult &result)
+
+void export_to_geojson(const PathResult &result)
 {
-    if (result.total_time == INF)
+    if (result.path_nodes.empty())
     {
-        std::cout << "No path found!\n";
+        std::cout << "{ \"error\": \"No path found\" }\n";
         return;
     }
 
-    std::cout << "========================================\n";
-    std::cout << "🚇 TRIP ITINERARY\n";
-    std::cout << "⏱️  Estimated Time: " << result.total_time / 60 << " minutes\n";
-    std::cout << "========================================\n";
+    std::cout << "{\n";
+    std::cout << "  \"type\": \"FeatureCollection\",\n";
+    std::cout << "  \"features\": [\n";
 
-    std::string_view current_line = "";
+    // --- 1. THE ROUTE LINE (LineString) ---
+    std::cout << "    {\n";
+    std::cout << "      \"type\": \"Feature\",\n";
+    std::cout << "      \"properties\": {\n";
+    std::cout << "        \"stroke\": \"#0055FF\",\n"; // Blue line
+    std::cout << "        \"stroke-width\": 4\n";
+    std::cout << "      },\n";
+    std::cout << "      \"geometry\": {\n";
+    std::cout << "        \"type\": \"LineString\",\n";
+    std::cout << "        \"coordinates\": [\n";
 
     for (std::size_t i = 0; i < result.path_nodes.size(); ++i)
     {
-        GTFSData::node_t node_id = result.path_nodes[i];
-
-        // Look up the node data from your generated .hpp file!
-        const auto &node_data = GTFSData::nodes[node_id];
-
-        // Transfer Detection Logic
-        if (node_data.route != current_line)
-        {
-            if (i != 0)
-            {
-                std::cout << "  🚶 [TRANSFER] \n";
-            }
-            std::cout << "🟢 BOARD LINE: " << node_data.route << '\n';
-            current_line = node_data.route;
-        }
-
-        std::cout << node_id << "   📍 " << node_data.stop_name << '\n';
+        const auto &node = GTFSData::nodes[result.path_nodes[i]];
+        // WARNING: GeoJSON requires [Longitude, Latitude]
+        std::cout << "          [" << node.lon << ", " << node.lat << "]";
+        if (i < result.path_nodes.size() - 1)
+            std::cout << ",";
+        std::cout << "\n";
     }
-    std::cout << "========================================\n";
-    std::cout << "🏁 ARRIVED AT DESTINATION\n";
+
+    std::cout << "        ]\n";
+    std::cout << "      }\n";
+    std::cout << "    }";
+
+    // --- 2. THE STATIONS (Points) ---
+    for (std::size_t i = 0; i < result.path_nodes.size(); ++i)
+    {
+        std::cout << ",\n"; // Comma to separate features
+        const auto &node = GTFSData::nodes[result.path_nodes[i]];
+
+        std::cout << "    {\n";
+        std::cout << "      \"type\": \"Feature\",\n";
+        std::cout << "      \"properties\": {\n";
+        std::cout << "        \"marker-color\": \"#FF0000\",\n"; // Red dots for stations
+        std::cout << "        \"name\": \"" << node.stop_name << "\",\n";
+        std::cout << "        \"line\": \"" << node.route << "\"\n";
+        std::cout << "      },\n";
+        std::cout << "      \"geometry\": {\n";
+        std::cout << "        \"type\": \"Point\",\n";
+        std::cout << "        \"coordinates\": [" << node.lon << ", " << node.lat << "]\n";
+        std::cout << "      }\n";
+        std::cout << "    }";
+    }
+
+    std::cout << "\n  ]\n";
+    std::cout << "}\n";
 }
 
-
-int main() {
-    GTFSData::node_t start = 0; // Barbara
-    GTFSData::node_t goal = 90;  // Malesherbes
-    GTFSData::weight_t penalty = 300;
-
-    // --- Start the Clock ---
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    // Run the algorithm
-    PathResult result = a_star(GTFSData::graph, start, goal, penalty);
-
-    // --- Stop the Clock ---
-    auto end_time = std::chrono::high_resolution_clock::now();
-
-    // Calculate duration in microseconds
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-
-    std::cout << "Algorithm finished in: " << duration << " microseconds.\n";
-    
-    return 0;
-}

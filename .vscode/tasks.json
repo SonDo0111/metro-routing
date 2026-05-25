@@ -17,7 +17,7 @@
                 "-Werror",
                 "-march=native",
                 "-O3",
-                "${file}",
+                "${workspaceFolder}/engine/src/*.cpp",
                 "-o",
                 "${workspaceFolder}/build/${fileBasenameNoExtension}"
             ],

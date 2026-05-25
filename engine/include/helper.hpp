@@ -4,6 +4,7 @@
 
 constexpr double EARTH_RADIUS_METERS{6371000.00};
 constexpr double METRO_MAX_SPEED{30.00};
+constexpr double COS_PARIS_LAT = 0.658; // Equivalent to cos_phi_mean, precalc
 
 inline double deg_to_rad(double deg)
 {
@@ -35,3 +36,27 @@ inline double heuristic_time(GTFSData::node_t node_a, GTFSData::node_t node_b)
 {
     return haversine_distance(node_a, node_b) / METRO_MAX_SPEED;
 };
+
+inline GTFSData::node_t find_nearest_station(double user_lat, double user_lon)
+{
+    GTFSData::node_t closest_node{0};
+    double min_dist_sq{std::numeric_limits<double>::max()};
+
+    // O(N) Linear Search - Instantaneous for 800 nodes
+    for (std::size_t i{0}; i < GTFSData::NUM_NODES; ++i)
+    {
+        const auto &node{GTFSData::nodes[i]};
+
+        double dx{(user_lon - node.lon) * COS_PARIS_LAT};
+        double dy{(user_lat - node.lat)};
+
+        double dist_sq{(dx * dx) + (dy * dy)};
+
+        if (dist_sq < min_dist_sq)
+        {
+            min_dist_sq = dist_sq;
+            closest_node = i;
+        }
+    }
+    return closest_node;
+}

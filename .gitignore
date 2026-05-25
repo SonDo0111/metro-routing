@@ -1,7 +1,10 @@
 .env
 data/
 build/
-engine/include/generated/
 web/public/
 *.log
 
+# Python caches
+__pycache__/
+*.pyc
+.venv/

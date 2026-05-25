@@ -41,4 +41,9 @@ PathResult a_star(const GTFSData::graph_t &graph,
                   GTFSData::node_t start_node, GTFSData::node_t goal_node,
                   GTFSData::weight_t transfer_penalty = static_cast<int>(RoutingProfile::BALANCED));
 
+PathResult a_star(const GTFSData::graph_t &graph, std::vector<GTFSData::node_t> start_nodes,
+                  std::string_view goal_station,
+                  GTFSData::node_t representative_goal_node,
+                  GTFSData::weight_t transfer_penalty);
+
 void export_to_geojson(const PathResult &result);

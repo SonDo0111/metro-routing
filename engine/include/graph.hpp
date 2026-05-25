@@ -6,10 +6,6 @@
 
 namespace GTFSData
 {
-    using node_t = std::size_t;
-    using weight_t = std::size_t;
-
-
     struct graph_t
     {
         // Graph member

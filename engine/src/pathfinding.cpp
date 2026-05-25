@@ -12,10 +12,6 @@
 #include "../include/pathfinding.hpp"
 #include "../include/helper.hpp"
 
-int node_expanded{0};
-
-
-
 std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
 {
     std::size_t transfer_count{0};
@@ -35,7 +31,7 @@ std::size_t transfer_count(const std::vector<GTFSData::node_t> &path)
     return transfer_count;
 }
 
-PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
+PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
                     GTFSData::node_t goal_node,
                     GTFSData::weight_t transfer_penalty)
 {
@@ -56,7 +52,6 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
     {
         QueueElement current = pq.top();
         pq.pop();
-        node_expanded++;
 
         // Early exit
         if (current.nodeID == goal_node)
@@ -162,7 +157,7 @@ int main() {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Run the algorithm
-    PathResult result = dijkstra(GTFSData::graph, start, goal, penalty);
+    PathResult result = a_star(GTFSData::graph, start, goal, penalty);
 
     // --- Stop the Clock ---
     auto end_time = std::chrono::high_resolution_clock::now();

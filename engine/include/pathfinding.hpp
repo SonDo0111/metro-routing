@@ -35,7 +35,7 @@ struct PathResult
     std::vector<GTFSData::node_t> path_nodes;
 };
 
-std::size_t transfer_count(const PathResult &result);
+std::size_t transfer_count(const std::vector<GTFSData::node_t> &path);
 
 PathResult dijkstra(const GTFSData::graph_t &graph,
                     GTFSData::node_t start_node, GTFSData::node_t goal_node,

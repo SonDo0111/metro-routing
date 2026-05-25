@@ -137,8 +137,14 @@ SELECT FORMAT(
 #include "node.hpp"
 
 namespace GTFSData {
-
 	constexpr std::size_t NUM_EDGES {%s};
+	using weight_t = std::size_t;
+
+	struct edge_t
+    {
+        node_t target;
+        weight_t weight;
+    };
 
     // CSR Node Offsets Array (Size: NUM_NODES + 1)
     constexpr std::array<std::size_t, NUM_NODES + 1> node_offset = {

@@ -10,6 +10,9 @@
 #include <chrono>
 #include "../include/graph.hpp"
 #include "../include/pathfinding.hpp"
+#include "../include/helper.hpp"
+
+int node_expanded{0};
 
 
 
@@ -47,12 +50,13 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
 
     // Init
     time_taken_to[start_node] = 0;
-    pq.push({0, start_node});
+    pq.push({0, 0, start_node});
 
     while (!pq.empty())
     {
         QueueElement current = pq.top();
         pq.pop();
+        node_expanded++;
 
         // Early exit
         if (current.nodeID == goal_node)
@@ -99,8 +103,9 @@ PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
                 time_taken_to[neighbor] = new_time_taken;
                 p[neighbor] = current.nodeID;
 
+                GTFSData::weight_t heuristic{static_cast<GTFSData::weight_t>(heuristic_time(neighbor, goal_node))};
                 // Push to the queue if found a strictly better path
-                pq.push({new_time_taken, neighbor});
+                pq.push({new_time_taken + heuristic, new_time_taken, neighbor});
             }
         }
     }
@@ -167,6 +172,5 @@ int main() {
 
     std::cout << "Algorithm finished in: " << duration << " microseconds.\n";
     
-    // print_itinerary(result); // Don't include printing in the benchmark!
     return 0;
 }

@@ -67,7 +67,7 @@ create materialized view metro.NodeHeadways as (
 -- Calculate Expected Wait Time (Median Headway / 2)
 	select
 		n.node_id,
-		(PERCENTILE_CONT(0.5) within group (order by headway)) / 2 as expected_wait_seconds
+		round((PERCENTILE_CONT(0.5) within group (order by headway)) / 2) as expected_wait_seconds
 	from
 		HeadwaySeconds hs
 	join metro.nodes n on

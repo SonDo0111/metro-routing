@@ -67,7 +67,7 @@ create materialized view metro.NodeHeadways as (
 -- Calculate Expected Wait Time (Median Headway / 2)
 	select
 		n.node_id,
-		(PERCENTILE_CONT(0.5) within group (order by headway)) / 2 as expected_wait_seconds
+		round((PERCENTILE_CONT(0.5) within group (order by headway)) / 2) as expected_wait_seconds
 	from
 		HeadwaySeconds hs
 	join metro.nodes n on
@@ -137,8 +137,14 @@ SELECT FORMAT(
 #include "node.hpp"
 
 namespace GTFSData {
-
 	constexpr std::size_t NUM_EDGES {%s};
+	using weight_t = std::size_t;
+
+	struct edge_t
+    {
+        node_t target;
+        weight_t weight;
+    };
 
     // CSR Node Offsets Array (Size: NUM_NODES + 1)
     constexpr std::array<std::size_t, NUM_NODES + 1> node_offset = {

@@ -16,8 +16,8 @@
                 "-pedantic-errors",
                 "-Werror",
                 "-march=native",
-                "-O0",
-                "${file}",
+                "-O3",
+                "${workspaceFolder}/engine/src/*.cpp",
                 "-o",
                 "${workspaceFolder}/build/${fileBasenameNoExtension}"
             ],

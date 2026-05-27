@@ -22,6 +22,7 @@ select
 	s.stop_id,
 	s.stop_lat,
 	s.stop_lon,
+	s.parent_station,
 	tmp.route_id,
 	tmp.direction_id
 from
@@ -39,6 +40,7 @@ select
 	n.stop_id,
 	n.stop_lat,
 	n.stop_lon,
+	n.parent_station,
 	r.route_long_name,
 	n.direction_id
 from
@@ -51,11 +53,12 @@ order by
 
 WITH LookupArray AS (
     SELECT FORMAT(
-        $$        {"%s", "%s", %s, %s, "%s"}$$, -- $$ acts as a raw string boundary
+        $$        {"%s", "%s", %s, %s, "%s", "%s"}$$, -- $$ acts as a raw string boundary
         stop_id,
         REPLACE(stop_name, '"', '\"'), -- Escapes double quotes for C++
         stop_lat,
         stop_lon,
+		parent_station,
         REPLACE(route_long_name, '"', '\"')
     ) AS cpp_line
     FROM metro.nodes_view
@@ -69,7 +72,7 @@ SELECT FORMAT(
 #include <cstddef> // For std::size_t
 
 namespace GTFSData {
-	
+	using node_t = std::size_t;
 	constexpr std::size_t NUM_NODES {%s};
  
     struct Node {
@@ -77,6 +80,7 @@ namespace GTFSData {
         std::string_view stop_name;
 		double lat;
 		double lon;
+		std::string_view parent_station;
 		std::string_view route;
     };
 

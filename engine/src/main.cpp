@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
             result = a_star(GTFSData::graph, start, goal, 300);
         }
         export_to_geojson(result);
-        std::cout << result.node_expanded << '\n';
         return 0;
     }
     else if (command == "nearest" && argc == 4)
@@ -48,6 +47,10 @@ int main(int argc, char *argv[])
         // Output just the ID as a simple JSON for Python to read
         std::cout << "{ \"nearest_node_id\": " << nearest << " }\n";
         return 0;
+    }
+    else if (command == "benchmark")
+    {
+        run_all_pairs_benchmark();
     }
 
     std::cerr << "Invalid command.\n";

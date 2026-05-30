@@ -60,3 +60,5 @@ inline GTFSData::node_t find_nearest_station(double user_lat, double user_lon)
     }
     return closest_node;
 }
+
+void run_all_pairs_benchmark();

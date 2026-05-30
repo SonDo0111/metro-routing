@@ -8,3 +8,5 @@ web/public/
 __pycache__/
 *.pyc
 .venv/
+
+benchmark_results.csv

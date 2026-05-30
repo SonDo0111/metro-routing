@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(metro-routing
     src/main.cpp
     src/pathfinding.cpp
+    src/benchmark.cpp
 )
 
 target_include_directories(metro-routing PRIVATE

@@ -19,13 +19,23 @@ int main(int argc, char *argv[])
 
     std::string command = argv[1];
 
-    if (command == "route" && argc == 4)
+    if (command == "route" && argc == 5)
     {
-        GTFSData::node_t start = std::stoull(argv[2]);
-        GTFSData::node_t goal = std::stoull(argv[3]);
+        GTFSData::node_t start = std::stoull(argv[3]);
+        GTFSData::node_t goal = std::stoull(argv[4]);
 
-        PathResult result = a_star(GTFSData::graph, start, goal, 300);
+        std::string algorithm = argv[2];
+        PathResult result{};
+        if (algorithm == "dijkstra")
+        {
+            result = dijkstra(GTFSData::graph, start, goal, 300);
+        }
+        else
+        {
+            result = a_star(GTFSData::graph, start, goal, 300);
+        }
         export_to_geojson(result);
+        std::cout << result.node_expanded << '\n';
         return 0;
     }
     else if (command == "nearest" && argc == 4)

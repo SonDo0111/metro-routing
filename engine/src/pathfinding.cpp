@@ -45,10 +45,11 @@ std::vector<GTFSData::node_t> get_platforms_from_station(std::string_view parent
     return platforms;
 }
 
-PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
-                  GTFSData::node_t goal_node,
-                  GTFSData::weight_t transfer_penalty)
+PathResult dijkstra(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
+                    GTFSData::node_t goal_node,
+                    GTFSData::weight_t transfer_penalty)
 {
+    int node_expanded{0};
     // Vector to keep track information about the state
     // This tell us about how many seconds we need to travel to the node
     std::vector<GTFSData::weight_t> time_taken_to(graph.num_nodes, INF);
@@ -66,6 +67,85 @@ PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
     {
         QueueElement current = pq.top();
         pq.pop();
+        ++node_expanded;
+
+        // Early exit
+        if (current.nodeID == goal_node)
+        {
+            std::vector<GTFSData::node_t> path{};
+
+            // Construct path from p vector
+            GTFSData::node_t current{goal_node};
+
+            while (current != std::numeric_limits<GTFSData::node_t>::max())
+            {
+                path.push_back(current);
+                current = p[current];
+            }
+
+            std::reverse(path.begin(), path.end());
+
+            return {time_taken_to[goal_node] - transfer_count(path) * transfer_penalty, path, node_expanded};
+        }
+
+        // Stale data check because using lazy dijkstra
+        if (current.time_taken > time_taken_to[current.nodeID])
+        {
+            continue;
+        }
+
+        for (std::size_t i = 0, n = graph.degree(current.nodeID); i < n; ++i)
+        {
+            GTFSData::weight_t penalty = 0;
+            GTFSData::edge_t edge{graph.adj_edge(current.nodeID, i)};
+            GTFSData::node_t neighbor{edge.target};
+            GTFSData::weight_t edge_weight{edge.weight};
+
+            if (GTFSData::nodes[current.nodeID].route != GTFSData::nodes[neighbor].route)
+            {
+                penalty = transfer_penalty;
+            }
+
+            GTFSData::weight_t new_time_taken{current.time_taken + edge_weight + penalty};
+
+            // Relaxation
+            if (new_time_taken < time_taken_to[neighbor])
+            {
+                time_taken_to[neighbor] = new_time_taken;
+                p[neighbor] = current.nodeID;
+
+                // Push to the queue if found a strictly better path
+                pq.push({new_time_taken, new_time_taken, neighbor});
+            }
+        }
+    }
+
+    return {INF, {}, node_expanded};
+}
+
+PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
+                  GTFSData::node_t goal_node,
+                  GTFSData::weight_t transfer_penalty)
+{
+    int node_expanded{0};
+    // Vector to keep track information about the state
+    // This tell us about how many seconds we need to travel to the node
+    std::vector<GTFSData::weight_t> time_taken_to(graph.num_nodes, INF);
+    // This tell us the node previous to the node
+    std::vector<GTFSData::node_t> p(graph.num_nodes, std::numeric_limits<GTFSData::node_t>::max());
+
+    // Min Priority Queue
+    std::priority_queue<QueueElement, std::vector<QueueElement>, std::greater<QueueElement>> pq{};
+
+    // Init
+    time_taken_to[start_node] = 0;
+    pq.push({0, 0, start_node});
+
+    while (!pq.empty())
+    {
+        QueueElement current = pq.top();
+        pq.pop();
+        ++node_expanded;
 
         // Early exit
         if (current.nodeID == goal_node)
@@ -83,7 +163,7 @@ PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
 
             std::reverse(path.begin(), path.end());
             // Note: The return is true time estimated in second but not the cost used in pq
-            return {time_taken_to[goal_node] - transfer_count(path) * transfer_penalty, path};
+            return {time_taken_to[goal_node] - transfer_count(path) * transfer_penalty, path, node_expanded};
         }
 
         // Stale data check because using lazy dijkstra
@@ -119,7 +199,7 @@ PathResult a_star(const GTFSData::graph_t &graph, GTFSData::node_t start_node,
         }
     }
 
-    return {INF, {}};
+    return {INF, {}, node_expanded};
 }
 
 PathResult a_star(const GTFSData::graph_t &graph, std::vector<GTFSData::node_t> start_nodes,
@@ -127,6 +207,7 @@ PathResult a_star(const GTFSData::graph_t &graph, std::vector<GTFSData::node_t> 
                   GTFSData::node_t representative_goal_node,
                   GTFSData::weight_t transfer_penalty)
 {
+    int node_expanded{0};
     // Vector to keep track information about the state
     // This tell us about how many seconds we need to travel to the node
     std::vector<GTFSData::weight_t> time_taken_to(graph.num_nodes, INF);
@@ -152,6 +233,7 @@ PathResult a_star(const GTFSData::graph_t &graph, std::vector<GTFSData::node_t> 
     {
         QueueElement current = pq.top();
         pq.pop();
+        ++node_expanded;
 
         // Early exit
         if (GTFSData::nodes[current.nodeID].parent_station == goal_station)
@@ -204,7 +286,7 @@ PathResult a_star(const GTFSData::graph_t &graph, std::vector<GTFSData::node_t> 
         }
     }
 
-    return {INF, {}};
+    return {INF, {}, node_expanded};
 }
 
 void export_to_geojson(const PathResult &result)
